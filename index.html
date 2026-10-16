@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La roue des émotions</title>
+<style>
+:root{--ink:#30265c;--purple:#5146d8;--light:#f6f3ff;--pink:#ffe5e1;--yellow:#fff0b8;--green:#d9f8e5}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#fff8e5,#f7efff 60%,#eaf8ff);color:var(--ink);font-family:"Trebuchet MS",system-ui,sans-serif;min-height:100vh;padding:18px}
+main{max-width:960px;margin:0 auto}
+header{text-align:center;background:linear-gradient(120deg,#fff0b8,#ffe1df);border:3px solid white;border-radius:26px;padding:20px 16px;box-shadow:0 7px 20px #45357b16}
+header .decor{font-size:36px}h1{margin:4px 0;font-size:clamp(1.8rem,5vw,2.7rem);color:#5146d8}header p{margin:7px 0 0;font-size:1.05rem}
+.tabs{display:flex;gap:10px;margin:18px 0}.tab{flex:1;border:2px solid #e5e0f5;background:#fff;border-radius:14px;padding:13px;font-size:1rem;font-weight:800;color:var(--ink);cursor:pointer}.tab.active{background:var(--purple);color:white;border-color:var(--purple)}
+.panel{background:#fff;border:2px solid #eee8ff;border-radius:22px;padding:clamp(14px,3vw,24px);box-shadow:0 6px 18px #45357b0c}
+h2{text-align:center;margin:0 0 5px;font-size:1.65rem} .sub{text-align:center;color:#70698c;margin:0 0 15px}
+.wheel-wrap{position:relative;width:min(100%,600px);margin:18px auto 16px}
+#wheel{display:block;width:100%;height:auto;filter:drop-shadow(0 7px 5px #30265c1c)}
+.pointer{position:absolute;top:-15px;left:50%;transform:translateX(-50%);z-index:2;width:0;height:0;border-left:19px solid transparent;border-right:19px solid transparent;border-top:34px solid #5146d8;filter:drop-shadow(0 2px 1px #30265c30)}
+.center{text-align:center}.primary,.secondary{border:0;border-radius:14px;padding:13px 20px;font-size:1rem;font-weight:850;cursor:pointer;transition:transform .12s}.primary{background:var(--purple);color:#fff;box-shadow:0 4px 0 #302a90}.primary:active,.secondary:active{transform:translateY(2px)}.primary:disabled{opacity:.5;cursor:default}.secondary{background:var(--yellow);color:var(--ink);border:2px solid #f0d98c}
+.result{min-height:100px;margin-top:14px;padding:8px}.result .emoji{font-size:48px}.result .word{font-size:1.8rem;font-weight:900;color:var(--purple)}.result .prompt{margin-top:5px}
+.challenge{background:var(--light);border-radius:16px;padding:15px;margin-top:12px}.challenge h3{margin:0 0 8px;color:var(--purple)}.challenge ul{margin:0;padding-left:23px;line-height:1.8}
+.game-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.score{background:var(--yellow);border-radius:15px;padding:8px 14px;text-align:center;min-width:88px;font-weight:800}.score strong{display:block;font-size:1.7rem}.dots{display:flex;gap:7px;justify-content:center;margin:12px 0}.dot{font-size:20px;color:#c4b5fd}.dot.current{color:var(--purple)}
+.scenario{background:linear-gradient(130deg,#fff7e6,#f4f0ff);border-radius:18px;padding:20px 16px;text-align:center;min-height:155px;display:flex;flex-direction:column;justify-content:center}.scenario .emoji{font-size:55px}.scenario p{font-size:1.15rem;font-weight:800;margin:9px 0 0}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}.choice{background:white;border:2px solid #e5e2f1;border-radius:13px;padding:13px 10px;text-align:left;font-size:1rem;font-weight:800;color:var(--ink);cursor:pointer}.choice:hover:not(:disabled){border-color:#8980ed;background:#f8f6ff}.choice:disabled{cursor:default}.choice.good{background:#d9f8e5;border-color:#25a765}.choice.bad{background:#ffe3e1;border-color:#e45b5b}
+.feedback{background:#f3f1fa;border-radius:13px;padding:13px;margin-top:12px;line-height:1.5;min-height:48px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.hidden{display:none!important}footer{text-align:center;color:#70698c;font-size:.9rem;padding:18px 5px 6px}
+button:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+@media(max-width:520px){body{padding:10px}.wheel-wrap{width:min(100%,460px)}.choices{grid-template-columns:1fr}.tabs{gap:7px}.tab{padding:11px 7px;font-size:.93rem}.game-top{align-items:flex-start}.panel{padding:14px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="decor" aria-hidden="true">🎡 💛 🎭</div>
+  <h1>La roue des émotions</h1>
+  <p>Tourne, découvre et joue avec les émotions !</p>
+</header>
+<nav class="tabs" aria-label="Choisir un jeu">
+  <button class="tab active" id="tab-wheel" type="button">🎡 La roue</button>
+  <button class="tab" id="tab-game" type="button">🎭 Le jeu</button>
+</nav>
+<section class="panel" id="wheel-mode">
+  <h2>Tourne la roue !</h2>
+  <p class="sub">Quelle émotion vas-tu découvrir ?</p>
+  <div class="wheel-wrap">
+    <div class="pointer" aria-hidden="true"></div>
+    <canvas id="wheel" width="800" height="800" role="img" aria-label="Une roue avec huit émotions"></canvas>
+  </div>
+  <div class="center">
+    <button class="primary" id="spin" type="button">✨ Tourner !</button>
+    <div class="result" id="wheel-result" aria-live="polite">
+      <div style="font-weight:800;color:#70698c">À toi de jouer !</div>
+    </div>
+  </div>
+  <div class="challenge">
+    <h3>💬 Le défi oral</h3>
+    <ul>
+      <li>Regarde l’émotion.</li>
+      <li>Dis le mot.</li>
+      <li>Montre l’émotion avec ton visage.</li>
+      <li>Dis : « Je suis content(e) ! »</li>
+    </ul>
+  </div>
+</section>
+<section class="panel hidden" id="game-mode">
+  <div class="game-top">
+    <div><h2 style="text-align:left">Devine l’émotion !</h2><p class="sub" style="text-align:left;margin:5px 0 0">Lis la situation. Choisis une émotion.</p></div>
+    <div class="score">TES POINTS<strong id="score">0</strong></div>
+  </div>
+  <div class="dots" id="progress" aria-label="Progression"></div>
+  <div class="scenario">
+    <div class="emoji" id="scenario-emoji">🎁</div>
+    <p id="scenario-text">Ton ami te fait un cadeau. Comment te sens-tu ?</p>
+  </div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback" aria-live="polite">Choisis une réponse. Bonne chance ! 🍀</div>
+  <div class="actions">
+    <button class="primary" id="next" type="button" disabled>Question suivante →</button>
+    <button class="secondary" id="restart" type="button">↻ Rejouer</button>
+  </div>
+</section>
+<footer>🌈 Toutes les émotions sont importantes. Bravo et amuse-toi bien !</footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const emotions = [
+    {fr:"content",emoji:"😊",color:"#f9d85a"},
+    {fr:"heureux",emoji:"😄",color:"#ffb75e"},
+    {fr:"fier",emoji:"😁",color:"#ff8f91"},
+    {fr:"effrayé",emoji:"😱",color:"#b7a6ff"},
+    {fr:"triste",emoji:"😢",color:"#7dc9ed"},
+    {fr:"jaloux",emoji:"😒",color:"#a9d99a"},
+    {fr:"énervé",emoji:"😠",color:"#ffa66b"},
+    {fr:"fâché",emoji:"😡",color:"#ff8c87"}
+  ];
+  const situations = [
+    {emoji:"🎁",text:"Ton ami te fait un joli cadeau.",answer:0,why:"Tu es content ! Le cadeau te fait plaisir."},
+    {emoji:"🎂",text:"C’est ton anniversaire. Tes amis sont là !",answer:1,why:"Tu es heureux ! C’est une belle journée."},
+    {emoji:"🏆",text:"Tu gagnes un concours après beaucoup de travail.",answer:2,why:"Tu es fier ! Tu as bien travaillé."},
+    {emoji:"🌩️",text:"Tu entends un bruit étrange dans la nuit.",answer:3,why:"Tu es effrayé ! Ce bruit te fait peur."},
+    {emoji:"🧸",text:"Ton meilleur ami part en vacances. Il te manque.",answer:4,why:"Tu es triste ! Ton ami te manque."},
+    {emoji:"🎮",text:"Ton frère reçoit un jeu que tu veux aussi.",answer:5,why:"Tu peux être jaloux. Tu aimerais avoir le même jeu."},
+    {emoji:"📖",text:"Tu veux lire, mais quelqu’un te dérange encore.",answer:6,why:"Tu es énervé ! Tu veux lire tranquillement."},
+    {emoji:"🧱",text:"Quelqu’un casse ta tour de cubes.",answer:7,why:"Tu peux être fâché. Tu n’aimes pas ce qui vient d’arriver."}
+  ];
+  const wheel = document.getElementById("wheel");
+  const ctx = wheel.getContext("2d");
+  let rotation = 0, spinning = false, order = [], round = 0, score = 0, answered = false;
+
+  function drawWheel() {
+    const cx=400, cy=400, r=386, step=Math.PI*2/8;
+    ctx.clearRect(0,0,800,800);
+    for(let i=0;i<8;i++){
+      const start=-Math.PI/2-step/2+i*step;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+step);ctx.closePath();
+      ctx.fillStyle=emotions[i].color;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.stroke();
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(start+step/2);
+      ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="52px sans-serif";ctx.fillStyle="#30265c";ctx.fillText(emotions[i].emoji,185,0);
+      ctx.font="bold 32px Trebuchet MS, sans-serif";ctx.fillText(emotions[i].fr,290,0);ctx.restore();
+    }
+    ctx.beginPath();ctx.arc(cx,cy,68,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();ctx.lineWidth=6;ctx.strokeStyle="#5146d8";ctx.stroke();
+    ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("💛",cx,cy);
+  }
+  drawWheel();
+
+  function switchMode(mode){
+    const wheelMode=mode==="wheel";
+    document.getElementById("wheel-mode").classList.toggle("hidden",!wheelMode);
+    document.getElementById("game-mode").classList.toggle("hidden",wheelMode);
+    document.getElementById("tab-wheel").classList.toggle("active",wheelMode);
+    document.getElementById("tab-game").classList.toggle("active",!wheelMode);
+  }
+  document.getElementById("tab-wheel").addEventListener("click",()=>switchMode("wheel"));
+  document.getElementById("tab-game").addEventListener("click",()=>switchMode("game"));
+
+  const spinButton = document.getElementById("spin");
+  let spinTimer = null;
+
+  spinButton.addEventListener("click", () => {
+    // Ignore extra clicks only while the current spin is actually running.
+    if (spinning) return;
+    spinning = true;
+    spinButton.disabled = true;
+
+    const resultBox = document.getElementById("wheel-result");
+    resultBox.innerHTML = '<div style="font-weight:800;color:#70698c">La roue tourne… ✨</div>';
+
+    // Pick a sector and align its centre with the pointer at 12 o'clock.
+    const index = Math.floor(Math.random() * emotions.length);
+    const sector = 360 / emotions.length;
+    const desiredAngle = (360 - (index * sector + sector / 2)) % 360;
+    const currentAngle = ((rotation % 360) + 360) % 360;
+    const extraTurns = 5 + Math.floor(Math.random() * 3);
+    const delta = ((desiredAngle - currentAngle + 360) % 360) + extraTurns * 360;
+
+    rotation += delta;
+    wheel.style.transition = "transform 4s cubic-bezier(.12,.72,.12,1)";
+    wheel.style.transform = "rotate(" + rotation + "deg)";
+
+    // Clear any stale timer, then reliably unlock the button after the animation.
+    if (spinTimer !== null) window.clearTimeout(spinTimer);
+    spinTimer = window.setTimeout(finishSpin, 4300);
+
+    function finishSpin() {
+      if (!spinning) return;
+      const emotion = emotions[index];
+      resultBox.innerHTML =
+        '<div class="emoji">' + emotion.emoji + '</div>' +
+        '<div class="word">' + emotion.fr + '</div>' +
+        '<div class="prompt">Dis : « Je suis ' + emotion.fr + ' ! »</div>';
+      spinning = false;
+      spinButton.disabled = false;
+      spinTimer = null;
+    }
+    // transitionend handles slower/faster browsers; the timeout is a fallback.
+    wheel.addEventListener("transitionend", function onEnd(event) {
+      if (event.propertyName !== "transform") return;
+      wheel.removeEventListener("transitionend", onEnd);
+      if (spinTimer !== null) {
+        window.clearTimeout(spinTimer);
+        spinTimer = null;
+      }
+      finishSpin();
+    }, { once: true });
+  });
+
+  function shuffle(array){for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]];}return array;}
+  function startGame(){
+    order=shuffle(situations.map((_,i)=>i));round=0;score=0;answered=false;
+    document.getElementById("score").textContent=score;
+    renderQuestion();
+  }
+  function renderQuestion(){
+    answered=false;
+    const progress=document.getElementById("progress");progress.innerHTML="";
+    order.forEach((_,i)=>{const span=document.createElement("span");span.className="dot"+(i===round?" current":"");span.textContent=i<round?"●":i===round?"◉":"○";progress.appendChild(span);});
+    const s=situations[order[round]];
+    document.getElementById("scenario-emoji").textContent=s.emoji;
+    document.getElementById("scenario-text").textContent=s.text;
+    document.getElementById("feedback").textContent="Quelle émotion correspond à cette situation ?";
+    const next=document.getElementById("next");next.disabled=true;next.textContent=round===7?"Voir le résultat →":"Question suivante →";
+    const choices=document.getElementById("choices");choices.innerHTML="";
+    const options=shuffle([s.answer,...shuffle(emotions.map((_,i)=>i).filter(i=>i!==s.answer)).slice(0,3)]);
+    options.forEach(n=>{
+      const b=document.createElement("button");b.type="button";b.className="choice";b.textContent=emotions[n].emoji+"  "+emotions[n].fr;
+      b.addEventListener("click",()=>choose(n,s.answer,b));choices.appendChild(b);
+    });
+  }
+  function choose(choice,correct,button){
+    if(answered)return;answered=true;
+    document.querySelectorAll("#choices button").forEach(b=>b.disabled=true);
+    const s=situations[order[round]];
+    if(choice===correct){
+      score++;button.classList.add("good");
+      document.getElementById("feedback").textContent="🎉 Bravo ! "+s.why;
+    }else{
+      button.classList.add("bad");
+      [...document.querySelectorAll("#choices button")].find(b=>b.textContent.startsWith(emotions[correct].emoji+"  "+emotions[correct].fr))?.classList.add("good");
+      document.getElementById("feedback").textContent="Essaie encore la prochaine fois ! La meilleure réponse est « "+emotions[correct].fr+" ». "+s.why;
+    }
+    document.getElementById("score").textContent=score;
+    document.getElementById("next").disabled=false;
+  }
+  document.getElementById("next").addEventListener("click",()=>{
+    if(!answered)return;
+    if(round<7){round++;renderQuestion();return;}
+    document.getElementById("scenario-emoji").textContent=score>=6?"🏆":"🌟";
+    document.getElementById("scenario-text").textContent="Bravo ! Tu as "+score+" points sur 8 !";
+    document.getElementById("choices").innerHTML="";
+    const note=document.createElement("div");note.style.cssText="grid-column:1/-1;text-align:center;padding:10px;font-weight:700";note.textContent=score>=6?"Excellent ! Tu connais bien les émotions !":"Très bien ! Joue encore pour apprendre les mots !";document.getElementById("choices").appendChild(note);
+    document.getElementById("progress").innerHTML="";
+    document.getElementById("feedback").textContent="Quelle émotion peux-tu expliquer à un ami ?";
+    document.getElementById("next").disabled=true;document.getElementById("next").textContent="Fin du jeu";
+  });
+  document.getElementById("restart").addEventListener("click",startGame);
+  startGame();
+})();
+</script>
+</body>
+</html>
